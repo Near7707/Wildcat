@@ -1,7 +1,7 @@
 // 작품 등록·목록·삭제.
 // 그림은 원본 1개만 서버에 저장한다. 비전 AI용 축소본은 보낼 때만 만든다(1-4).
 
-import { FILES, saveImage, deleteFile, deleteJson, fileUrl } from './storage.js';
+import { FILES, saveImage, deleteFile, deleteJson, fileUrl, StorageConflictError } from './storage.js';
 import { getState, saveState, newId, loadState } from './store.js';
 
 export const MAX_FILE_MB = 20;
@@ -100,6 +100,33 @@ export async function addWork(file, title) {
         throw e;
     }
     return work;
+}
+
+/**
+ * 작품 하나를 고치고 저장한다. 다른 기기와 어긋났으면 최신 기록을 다시 읽고 한 번 더 시도한다.
+ * @param {string} id
+ * @param {(work: object) => void} mutate
+ */
+export async function updateWork(id, mutate) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+        const state = getState();
+        const index = state.works.findIndex(w => w.id === id);
+        if (index < 0) return null;
+        const snapshot = JSON.parse(JSON.stringify(state.works[index]));
+        mutate(state.works[index]);
+        try {
+            await saveState();
+            return state.works[index];
+        } catch (e) {
+            state.works[index] = snapshot;
+            if (e instanceof StorageConflictError && attempt === 0) {
+                await loadState();
+                continue;
+            }
+            throw e;
+        }
+    }
+    return null;
 }
 
 export async function renameWork(id, title) {

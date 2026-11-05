@@ -321,3 +321,54 @@
     -webkit-text-fill-color: #8a7f96;
     opacity: 1;
 }
+
+/* 닫을 때 잠깐 붙였다 떼는 판 (아이폰 주소창 줄 색 되돌리기) */
+.wildcat_bar_fix {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 24px;
+    z-index: 9999;
+    pointer-events: none;
+}
+
+/* 관찰 결과 */
+#wildcat_overlay .wildcat_obs { max-height: 85%; }
+#wildcat_overlay .wildcat_obs_body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+#wildcat_overlay .wildcat_obs_row b {
+    display: block;
+    font-size: 13px;
+    color: #c9b6e4;
+    margin-bottom: 2px;
+}
+#wildcat_overlay .wildcat_obs_row p,
+#wildcat_overlay .wildcat_obs_msg {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+#wildcat_overlay details summary {
+    cursor: pointer;
+    font-size: 13px;
+    color: #b8aec4;
+}
+#wildcat_overlay .wildcat_raw {
+    margin: 6px 0 0;
+    padding: 8px;
+    border-radius: 6px;
+    background: #15121a;
+    color: #d8d0e2;
+    font-size: 12px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 40vh;
+    overflow: auto;
+}
+#wildcat_overlay .wildcat_row_btns { flex-wrap: wrap; }

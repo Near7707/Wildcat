@@ -30,19 +30,41 @@ export function hasRequestService() {
     return Boolean(ctx().ConnectionManagerRequestService);
 }
 
-export async function askProfile(profileId, messages, { maxTokens = 600, includePreset = true } = {}) {
-    if (!profileId) throw new Error('연결 프로필이 골라져 있지 않아요.');
-    if (!findProfile(profileId)) throw new Error('골라 둔 연결 프로필이 없어졌어요. 다시 골라 주세요.');
-    const service = ctx().ConnectionManagerRequestService;
-    if (!service) throw new Error('이 SillyTavern에는 연결 프로필 요청 기능이 없어요. 업데이트가 필요해요.');
+export class AiError extends Error {
+    /** @param {'setup'|'timeout'|'request'|'empty'} kind */
+    constructor(kind, message, cause) {
+        super(message, cause ? { cause } : undefined);
+        this.name = 'AiError';
+        this.kind = kind;
+    }
+}
 
-    const res = await service.sendRequest(profileId, messages, maxTokens, {
-        stream: false,
-        extractData: true,
-        includePreset,
-    });
-    const text = typeof res === 'string' ? res : (res?.content ?? '');
-    return String(text).trim();
+export async function askProfile(profileId, messages, { maxTokens = 600, includePreset = true, timeoutMs = 120000 } = {}) {
+    if (!profileId) throw new AiError('setup', '연결 프로필이 골라져 있지 않아요.');
+    if (!findProfile(profileId)) throw new AiError('setup', '골라 둔 연결 프로필이 없어졌어요. 다시 골라 주세요.');
+    const service = ctx().ConnectionManagerRequestService;
+    if (!service) throw new AiError('setup', '이 SillyTavern에는 연결 프로필 요청 기능이 없어요. 업데이트가 필요해요.');
+
+    const controller = new AbortController();
+    let timedOut = false;
+    const timer = setTimeout(() => { timedOut = true; controller.abort(); }, timeoutMs);
+    let res;
+    try {
+        res = await service.sendRequest(profileId, messages, maxTokens, {
+            stream: false,
+            extractData: true,
+            includePreset,
+            signal: controller.signal,
+        });
+    } catch (e) {
+        if (timedOut) throw new AiError('timeout', `응답이 ${Math.round(timeoutMs / 1000)}초 안에 오지 않았어요.`, e);
+        throw new AiError('request', `요청 실패: ${errorText(e)}`, e);
+    } finally {
+        clearTimeout(timer);
+    }
+    const text = String(typeof res === 'string' ? res : (res?.content ?? '')).trim();
+    if (!text) throw new AiError('empty', '응답이 비어 있어요. 생각하는 모델이면 답 길이가 모자랐을 수 있어요.');
+    return text;
 }
 
 export function askVision(messages, options) {

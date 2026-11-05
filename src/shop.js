@@ -39,6 +39,9 @@ function closeLayer(layer) {
 export function openShop() {
     if (overlay) return;
 
+    // 가게 창을 덮기 전에 화면 맨 아래 색을 읽어 둔다 (닫을 때 주소창 줄 색 되돌리기용)
+    bottomColor = readBottomColor();
+
     overlay = document.createElement('div');
     overlay.id = 'wildcat_overlay';
     overlay.innerHTML = `
@@ -52,8 +55,7 @@ export function openShop() {
         </div>`;
     document.body.append(overlay);
 
-    // 페이지(html)의 overflow는 건드리지 않는다. 건드리면 아이폰 주소창 줄 색이 바뀐 채로 남는다.
-    // 대신 열기 전 스크롤 위치를 기억했다가 닫을 때 되돌린다.
+    // 페이지(html)의 overflow는 건드리지 않는다. 열기 전 스크롤 위치를 기억했다가 닫을 때 되돌린다.
     const prevScroll = { x: window.scrollX, y: window.scrollY };
 
     const vv = window.visualViewport;
@@ -131,15 +133,38 @@ export function closeShop() {
     refreshBrowserBars();
 }
 
-// 아이폰 사파리는 화면 가장자리 색을 보고 주소창 줄 색을 정한다.
-// 가게 창을 닫은 뒤 색을 다시 읽게 한 번 바꿨다가 되돌린다.
+// 아이폰 사파리는 화면 맨 아래에 붙은 고정된 판의 색으로 주소창 줄 색을 정하고,
+// 그 판이 사라져도 마지막 색을 들고 있다. 그래서 가게 창을 닫은 뒤
+// 원래 화면과 같은 색의 얇은 판을 잠깐 붙였다 떼서 밝은 색을 마지막으로 보게 한다.
+let bottomColor = null;
+
+function isVisibleColor(c) {
+    if (!c || c === 'transparent') return false;
+    const m = c.match(/rgba?\(([^)]+)\)/);
+    if (!m) return true;
+    const parts = m[1].split(/[ ,/]+/).filter(Boolean);
+    return parts.length < 4 || parseFloat(parts[3]) > 0.5;
+}
+
+function readBottomColor() {
+    try {
+        let el = document.elementFromPoint(window.innerWidth / 2, window.innerHeight - 2);
+        while (el) {
+            const c = getComputedStyle(el).backgroundColor;
+            if (isVisibleColor(c)) return c;
+            el = el.parentElement;
+        }
+        const body = getComputedStyle(document.body).backgroundColor;
+        if (isVisibleColor(body)) return body;
+    } catch { /* 무시 */ }
+    return null;
+}
+
 function refreshBrowserBars() {
-    const meta = document.querySelector('meta[name="theme-color"]');
-    const color = meta?.getAttribute('content') ?? null;
-    if (meta) meta.setAttribute('content', '#000001');
-    requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-            if (meta && color !== null) meta.setAttribute('content', color);
-        });
-    });
+    if (!bottomColor) return;
+    const strip = document.createElement('div');
+    strip.className = 'wildcat_bar_fix';
+    strip.style.background = bottomColor;
+    document.body.append(strip);
+    setTimeout(() => strip.remove(), 1500);
 }
