@@ -52,12 +52,15 @@ export function openShop() {
         </div>`;
     document.body.append(overlay);
 
-    const prevOverflow = document.documentElement.style.overflow;
-    document.documentElement.style.overflow = 'hidden';
+    // 페이지(html)의 overflow는 건드리지 않는다. 건드리면 아이폰 주소창 줄 색이 바뀐 채로 남는다.
+    // 대신 열기 전 스크롤 위치를 기억했다가 닫을 때 되돌린다.
+    const prevScroll = { x: window.scrollX, y: window.scrollY };
 
     const vv = window.visualViewport;
     const fit = () => {
         if (!overlay) return;
+        // 페이지가 확대된 상태면 따라가지 않는다 (따라가면 창이 흔들림)
+        if (vv && vv.scale > 1.01) return;
         if (vv) {
             overlay.style.transform = `translate(${vv.offsetLeft}px, ${vv.offsetTop}px)`;
             overlay.style.width = `${vv.width}px`;
@@ -80,6 +83,11 @@ export function openShop() {
     vv?.addEventListener('scroll', fit);
     window.addEventListener('resize', fit);
     document.addEventListener('keydown', onKey, true);
+    // 사파리의 페이지 확대(두 손가락) 막기. 그림 확대는 원본 보기에서 따로 한다.
+    const stopGesture = (e) => e.preventDefault();
+    overlay.addEventListener('gesturestart', stopGesture);
+    overlay.addEventListener('gesturechange', stopGesture);
+    overlay.addEventListener('touchmove', (e) => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
     overlay.querySelector('#wildcat_close').addEventListener('click', closeShop);
     fit();
     load();
@@ -89,7 +97,7 @@ export function openShop() {
         vv?.removeEventListener('scroll', fit);
         window.removeEventListener('resize', fit);
         document.removeEventListener('keydown', onKey, true);
-        document.documentElement.style.overflow = prevOverflow;
+        window.scrollTo(prevScroll.x, prevScroll.y);
     };
 }
 
@@ -124,7 +132,7 @@ export function closeShop() {
 }
 
 // 아이폰 사파리는 화면 가장자리 색을 보고 주소창 줄 색을 정한다.
-// 가게 창을 닫은 뒤에도 어두운 색이 남지 않게, 화면을 한 번 다시 그리게 한다.
+// 가게 창을 닫은 뒤 색을 다시 읽게 한 번 바꿨다가 되돌린다.
 function refreshBrowserBars() {
     const meta = document.querySelector('meta[name="theme-color"]');
     const color = meta?.getAttribute('content') ?? null;
@@ -132,10 +140,6 @@ function refreshBrowserBars() {
     requestAnimationFrame(() => {
         requestAnimationFrame(() => {
             if (meta && color !== null) meta.setAttribute('content', color);
-            const x = window.scrollX;
-            const y = window.scrollY;
-            window.scrollTo(x, y + 1);
-            window.scrollTo(x, y);
         });
     });
 }

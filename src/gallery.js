@@ -3,6 +3,7 @@
 import { listWorks, getWork, workImageUrl, addWork, removeWork, renameWork, checkFile, reload, MAX_FILE_MB } from './works.js';
 import { StorageConflictError } from './storage.js';
 import { pushLayer, setStatus } from './shop.js';
+import { attachZoom } from './zoom.js';
 
 let root = null;
 let busy = false;
@@ -152,24 +153,23 @@ function openViewer(id) {
             <span class="wildcat_viewer_title">${esc(work.title)}</span>
             <button type="button" class="wildcat_btn" data-act="close">닫기</button>
         </div>
-        <div class="wildcat_viewer_img" data-fit="1">
-            <img src="${esc(workImageUrl(work))}" alt="${esc(work.title)}">
+        <div class="wildcat_viewer_img">
+            <img src="${esc(workImageUrl(work))}" alt="${esc(work.title)}" draggable="false">
         </div>
         <div class="wildcat_viewer_foot">
-            <small>${work.width}×${work.height} · ${work.sizeKb}KB · 그림을 누르면 원래 크기로 봐요</small>
+            <small>${work.width}×${work.height} · ${work.sizeKb}KB · 두 번 누르거나 두 손가락으로 벌리면 커져요</small>
             <div class="wildcat_row_btns">
                 <button type="button" class="wildcat_btn" data-act="rename">제목 바꾸기</button>
                 <button type="button" class="wildcat_btn wildcat_danger" data-act="delete">삭제</button>
             </div>
         </div>`;
 
-    const close = pushLayer(view);
     const box = view.querySelector('.wildcat_viewer_img');
+    let detachZoom = null;
+    const close = pushLayer(view, () => detachZoom?.());
+    detachZoom = attachZoom(box, box.querySelector('img'));
 
     view.querySelector('[data-act="close"]').addEventListener('click', close);
-    box.addEventListener('click', () => {
-        box.dataset.fit = box.dataset.fit === '1' ? '0' : '1';
-    });
 
     view.querySelector('[data-act="rename"]').addEventListener('click', async () => {
         const next = window.prompt('새 제목', work.title);
