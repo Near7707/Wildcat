@@ -292,6 +292,24 @@ export async function createGuest() {
     }
 }
 
+/**
+ * 손님 한 명을 고치고 저장한다. 손님이 이미 떠났으면 아무것도 안 하고 null.
+ * @param {(guest: object) => void} mutate
+ */
+export async function updateGuest(id, mutate) {
+    let found = null;
+    await saveWith((state) => {
+        state.guests = state.guests.map(g => {
+            if (g.id !== id) return g;
+            const copy = JSON.parse(JSON.stringify(g));
+            mutate(copy);
+            found = copy;
+            return copy;
+        });
+    });
+    return found;
+}
+
 /** 손님 보내기. 퇴장한 손님은 기억을 남기지 않는다. */
 export async function removeGuest(id) {
     await saveWith((state) => {

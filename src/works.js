@@ -152,11 +152,20 @@ export async function removeWork(id) {
     const work = getWork(id);
     if (!work) return;
     const before = state.works;
+    const beforeGuests = state.guests;
     state.works = before.filter(w => w.id !== id);
+    // 이 작품에 대한 손님들의 감상 초안도 함께 지운다
+    state.guests = (state.guests ?? []).map(g => {
+        if (!g.drafts?.[id]) return g;
+        const drafts = { ...g.drafts };
+        delete drafts[id];
+        return { ...g, drafts };
+    });
     try {
         await saveState();
     } catch (e) {
         state.works = before;
+        state.guests = beforeGuests;
         throw e;
     }
     await deleteFile(work.image).catch(err => console.warn('[Wildcat] 그림 파일 삭제 실패', err));

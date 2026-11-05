@@ -6,7 +6,7 @@ import { pushLayer, setStatus } from './shop.js';
 import { attachZoom } from './zoom.js';
 import { observeWork, isObserving, onVisionChange, SECTIONS, errorLabel } from './vision.js';
 import { getSettings } from './settings.js';
-import { openGuests } from './guestView.js';
+import { openGuests, openWorkReactions } from './guestView.js';
 
 let root = null;
 let busy = false;
@@ -201,6 +201,7 @@ function openViewer(id) {
             <small>${work.width}×${work.height} · ${work.sizeKb}KB · 두 번 누르거나 두 손가락으로 벌리면 커져요</small>
             <div class="wildcat_row_btns">
                 <button type="button" class="wildcat_btn wildcat_primary" data-act="observe">관찰</button>
+                <button type="button" class="wildcat_btn wildcat_primary" data-act="reactions">감상</button>
                 <button type="button" class="wildcat_btn" data-act="rename">제목 바꾸기</button>
                 <button type="button" class="wildcat_btn wildcat_danger" data-act="delete">삭제</button>
             </div>
@@ -213,6 +214,7 @@ function openViewer(id) {
 
     view.querySelector('[data-act="close"]').addEventListener('click', close);
     view.querySelector('[data-act="observe"]').addEventListener('click', () => openObservation(id));
+    view.querySelector('[data-act="reactions"]').addEventListener('click', () => openWorkReactions(id));
 
     view.querySelector('[data-act="rename"]').addEventListener('click', async () => {
         const next = window.prompt('새 제목', work.title);
