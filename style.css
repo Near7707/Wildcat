@@ -108,3 +108,187 @@
 #wildcat_overlay .wildcat_warn {
     color: #e8a060;
 }
+
+/* ---------- 작품 목록 (1단계) ---------- */
+
+#wildcat_overlay .wildcat_status:empty { display: none; }
+#wildcat_overlay .wildcat_bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+#wildcat_overlay .wildcat_primary {
+    background: #5a4470;
+    border-color: #8a72a4;
+}
+#wildcat_overlay .wildcat_danger {
+    background: #5a2e34;
+    border-color: #8a4a52;
+}
+#wildcat_overlay .wildcat_btn:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+#wildcat_overlay .wildcat_grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+}
+#wildcat_overlay .wildcat_grid .wildcat_empty {
+    grid-column: 1 / -1;
+    margin-top: 20%;
+}
+#wildcat_overlay .wildcat_card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 6px;
+    border-radius: 8px;
+    border: 1px solid #3a3044;
+    background: #26202e;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    min-width: 0;
+}
+#wildcat_overlay .wildcat_thumb {
+    display: block;
+    aspect-ratio: 1 / 1;
+    border-radius: 4px;
+    overflow: hidden;
+    background: #15121a;
+}
+#wildcat_overlay .wildcat_thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+#wildcat_overlay .wildcat_card_title {
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+#wildcat_overlay .wildcat_card_meta {
+    font-size: 12px;
+    opacity: 0.65;
+}
+
+/* 겹쳐 뜨는 화면 */
+#wildcat_overlay .wildcat_layer {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+}
+#wildcat_overlay .wildcat_sheet_wrap {
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+#wildcat_overlay .wildcat_sheet {
+    width: 100%;
+    max-width: 520px;
+    max-height: 100%;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    padding-bottom: max(14px, env(safe-area-inset-bottom));
+    background: #241e2c;
+    border-radius: 14px 14px 0 0;
+    border: 1px solid #3a3044;
+}
+#wildcat_overlay .wildcat_sheet_head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+#wildcat_overlay .wildcat_preview {
+    max-height: 34vh;
+    display: flex;
+    justify-content: center;
+    background: #15121a;
+    border-radius: 6px;
+    overflow: hidden;
+}
+#wildcat_overlay .wildcat_preview img {
+    max-width: 100%;
+    max-height: 34vh;
+    object-fit: contain;
+}
+#wildcat_overlay .wildcat_hint { opacity: 0.75; }
+#wildcat_overlay .wildcat_label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 14px;
+}
+#wildcat_overlay .wildcat_input {
+    font-size: 16px; /* 아이폰에서 16px 미만이면 자동 확대됨 */
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #4a3e58;
+    background: #15121a;
+    color: #eee;
+}
+
+/* 원본 보기 */
+#wildcat_overlay .wildcat_viewer {
+    display: flex;
+    flex-direction: column;
+    background: #0e0c11;
+}
+#wildcat_overlay .wildcat_viewer_head,
+#wildcat_overlay .wildcat_viewer_foot {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 12px;
+    flex-wrap: wrap;
+}
+#wildcat_overlay .wildcat_viewer_head {
+    padding-top: max(8px, env(safe-area-inset-top));
+}
+#wildcat_overlay .wildcat_viewer_foot {
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+}
+#wildcat_overlay .wildcat_viewer_title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+#wildcat_overlay .wildcat_row_btns {
+    display: flex;
+    gap: 8px;
+}
+#wildcat_overlay .wildcat_viewer_img {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y pinch-zoom;
+}
+#wildcat_overlay .wildcat_viewer_img[data-fit="1"] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#wildcat_overlay .wildcat_viewer_img[data-fit="1"] img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+#wildcat_overlay .wildcat_viewer_img[data-fit="0"] img {
+    max-width: none;
+    max-height: none;
+    display: block;
+}

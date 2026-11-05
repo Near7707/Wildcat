@@ -1,13 +1,39 @@
-// 전체화면 가게 창. 지금은 빈 틀만 있다.
+// 전체화면 가게 창.
 // 아이폰 키보드 대응: 보이는 영역(visualViewport)의 위치·높이를 따라간다 (0-4 검증 방식).
+// 지금(1단계)은 가게 그림 대신 작품 목록 화면을 보여 준다.
 
 import { loadState } from './store.js';
+import { mountGallery } from './gallery.js';
 
 let overlay = null;
 let cleanup = null;
 
+// 창 위에 겹쳐 뜨는 화면(등록 창, 원본 보기 등). Esc·닫기는 맨 위부터 닫는다.
+const layers = [];
+
 export function isShopOpen() {
     return overlay !== null;
+}
+
+export function getOverlay() {
+    return overlay;
+}
+
+/** 겹쳐 뜨는 화면 열기. 돌려받은 함수로 닫는다. */
+export function pushLayer(el, onClose) {
+    if (!overlay) return () => {};
+    overlay.append(el);
+    const layer = { el, onClose };
+    layers.push(layer);
+    return () => closeLayer(layer);
+}
+
+function closeLayer(layer) {
+    const i = layers.indexOf(layer);
+    if (i < 0) return;
+    layers.splice(i, 1);
+    layer.el.remove();
+    layer.onClose?.();
 }
 
 export function openShop() {
@@ -21,7 +47,8 @@ export function openShop() {
             <button type="button" class="wildcat_btn" id="wildcat_close">닫기</button>
         </div>
         <div class="wildcat_body" id="wildcat_body">
-            <p class="wildcat_empty">The Honest Wildcat — 아직 준비 중이에요.</p>
+            <p class="wildcat_status" id="wildcat_status">가게 기록 불러오는 중...</p>
+            <div id="wildcat_gallery"></div>
         </div>`;
     document.body.append(overlay);
 
@@ -42,49 +69,53 @@ export function openShop() {
         }
     };
     const onKey = (e) => {
-        if (e.key === 'Escape') closeShop();
+        if (e.key !== 'Escape') return;
+        e.stopPropagation();
+        const top = layers.at(-1);
+        if (top) closeLayer(top);
+        else closeShop();
     };
 
     vv?.addEventListener('resize', fit);
     vv?.addEventListener('scroll', fit);
     window.addEventListener('resize', fit);
-    document.addEventListener('keydown', onKey);
+    document.addEventListener('keydown', onKey, true);
     overlay.querySelector('#wildcat_close').addEventListener('click', closeShop);
     fit();
-    showLoad();
+    load();
 
     cleanup = () => {
         vv?.removeEventListener('resize', fit);
         vv?.removeEventListener('scroll', fit);
         window.removeEventListener('resize', fit);
-        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('keydown', onKey, true);
         document.documentElement.style.overflow = prevOverflow;
     };
 }
 
-async function showLoad() {
-    const body = overlay?.querySelector('#wildcat_body');
-    if (!body) return;
-    const p = document.createElement('p');
-    p.className = 'wildcat_status';
-    p.textContent = '가게 기록 불러오는 중...';
-    body.append(p);
+export function setStatus(text, warn = false) {
+    const p = overlay?.querySelector('#wildcat_status');
+    if (!p) return;
+    p.textContent = text;
+    p.classList.toggle('wildcat_warn', warn);
+}
+
+async function load() {
     try {
-        const { state, from } = await loadState();
+        const { from } = await loadState();
         if (!overlay) return;
-        const when = state.savedAt ? new Date(state.savedAt).toLocaleString() : '아직 저장한 적 없음';
-        const fromText = { main: '', backup: ' (본 파일이 깨져서 백업으로 열었어요)', none: ' (새 가게)' }[from];
-        p.textContent = `작품 ${state.works.length}점 · 골드 ${state.gold} · 마지막 저장: ${when}${fromText}`;
-        if (from === 'backup') p.classList.add('wildcat_warn');
+        if (from === 'backup') setStatus('가게 기록이 깨져서 직전 백업으로 열었어요.', true);
+        else setStatus('');
+        mountGallery(overlay.querySelector('#wildcat_gallery'));
     } catch (e) {
         if (!overlay) return;
-        p.textContent = `가게 기록을 못 불러왔어요: ${e?.message ?? e}`;
-        p.classList.add('wildcat_warn');
+        setStatus(`가게 기록을 못 불러왔어요: ${e?.message ?? e}`, true);
     }
 }
 
 export function closeShop() {
     if (!overlay) return;
+    while (layers.length) closeLayer(layers.at(-1));
     cleanup?.();
     cleanup = null;
     overlay.remove();
