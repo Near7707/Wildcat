@@ -12,10 +12,12 @@ SillyTavern 확장. 그림 상점 **The Honest Wildcat**에서 내가 등록한 
   - 두 칸에 같은 프로필을 골라도 됩니다.
 - Vertex로 연결한 프로필은 지금 SillyTavern에서 이 방식의 요청이 실패해서 쓸 수 없습니다.
 
-## 설치 (지금은 수동)
-1. `wildcat` 폴더를 `SillyTavern/data/<사용자 이름>/extensions/` 안에 넣습니다. (기본 사용자면 `default-user`)
-2. SillyTavern을 새로고침합니다.
+## 설치
+1. SillyTavern에서 확장 메뉴 → **Install extension**을 누릅니다.
+2. 이 주소를 넣습니다: `https://github.com/Near7707/Wildcat`
 3. 확장 메뉴에서 **WILDCAT**을 엽니다.
+
+업데이트는 확장 관리 화면에서 WILDCAT의 업데이트 버튼을 누르면 됩니다.
 
 ## 사용
 1. 비전 AI, 반응 AI 프로필을 고릅니다.
