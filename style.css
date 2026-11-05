@@ -1,0 +1,110 @@
+/* ---------- 설정 패널 ---------- */
+
+.wildcat_settings .wildcat_block {
+    margin: 6px 0 10px;
+}
+.wildcat_settings label {
+    display: block;
+    margin-bottom: 4px;
+}
+.wildcat_settings .wildcat_row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+.wildcat_settings .wildcat_row select {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+}
+.wildcat_settings .wildcat_row .menu_button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    width: auto;
+    margin: 0;
+}
+.wildcat_settings .wildcat_note {
+    display: block;
+    margin-top: 4px;
+    opacity: 0.8;
+    word-break: break-word;
+}
+.wildcat_settings .wildcat_note.wildcat_warn {
+    color: #e8a060;
+    opacity: 1;
+}
+.wildcat_settings .wildcat_open_row {
+    margin-top: 10px;
+}
+
+/* ---------- 전체화면 가게 ---------- */
+
+#wildcat_overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    background: #1e1a24;
+    color: #eee;
+    will-change: transform;
+    overscroll-behavior: contain;
+}
+#wildcat_overlay .wildcat_top {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 12px;
+    padding-top: max(8px, env(safe-area-inset-top));
+    border-bottom: 1px solid #3a3044;
+}
+#wildcat_overlay .wildcat_title {
+    font-weight: bold;
+    letter-spacing: 0.08em;
+}
+#wildcat_overlay .wildcat_body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    padding: 12px;
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+}
+#wildcat_overlay .wildcat_empty {
+    opacity: 0.7;
+    text-align: center;
+    margin-top: 30%;
+}
+#wildcat_overlay .wildcat_btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid #6a5a78;
+    background: #3a3044;
+    color: #eee;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.wildcat_settings .wildcat_out {
+    margin-top: 8px;
+    padding: 8px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.25);
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 0.9em;
+}
+#wildcat_overlay .wildcat_status {
+    text-align: center;
+    opacity: 0.85;
+    font-size: 0.9em;
+}
+#wildcat_overlay .wildcat_warn {
+    color: #e8a060;
+}
