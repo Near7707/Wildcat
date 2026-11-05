@@ -6,6 +6,7 @@ import { pushLayer, setStatus } from './shop.js';
 import { attachZoom } from './zoom.js';
 import { observeWork, isObserving, onVisionChange, SECTIONS, errorLabel } from './vision.js';
 import { getSettings } from './settings.js';
+import { openGuests } from './guestView.js';
 
 let root = null;
 let busy = false;
@@ -56,12 +57,16 @@ function render() {
     root.innerHTML = `
         <div class="wildcat_bar">
             <span>작품 ${works.length}점</span>
-            <button type="button" class="wildcat_btn wildcat_primary" data-act="add">작품 등록</button>
+            <span class="wildcat_row_btns">
+                <button type="button" class="wildcat_btn" data-act="guests">손님</button>
+                <button type="button" class="wildcat_btn wildcat_primary" data-act="add">작품 등록</button>
+            </span>
         </div>
         <div class="wildcat_grid">
             ${works.length === 0 ? '<p class="wildcat_empty">아직 등록한 작품이 없어요.</p>' : works.map(card).join('')}
         </div>`;
     root.querySelector('[data-act="add"]').addEventListener('click', openAddSheet);
+    root.querySelector('[data-act="guests"]').addEventListener('click', openGuests);
     root.querySelectorAll('.wildcat_card').forEach(c => {
         c.addEventListener('click', () => openViewer(c.dataset.id));
     });

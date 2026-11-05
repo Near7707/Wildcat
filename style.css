@@ -372,3 +372,47 @@
     overflow: auto;
 }
 #wildcat_overlay .wildcat_row_btns { flex-wrap: wrap; }
+
+/* 손님 (1-5 시험 화면) */
+#wildcat_overlay .wildcat_guests,
+#wildcat_overlay .wildcat_guest_detail { max-height: 85%; }
+#wildcat_overlay .wildcat_guest_list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+#wildcat_overlay .wildcat_guest {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #3a3044;
+    background: #2c2536;
+    text-align: left;
+    cursor: pointer;
+}
+#wildcat_overlay .wildcat_guest_intro {
+    font-size: 13px;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+#wildcat_overlay .wildcat_kv {
+    display: flex;
+    gap: 10px;
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 2px 0;
+}
+#wildcat_overlay .wildcat_kv span:first-child {
+    flex: 0 0 7.5em;
+    color: #b8aec4;
+}
+#wildcat_overlay .wildcat_kv span:last-child {
+    flex: 1 1 auto;
+    min-width: 0;
+    word-break: break-word;
+}

@@ -15,6 +15,7 @@ function emptyState() {
         gameTime: 0,   // 게임 속 분 단위 (2단계에서 사용)
         nextId: 1,
         works: [],     // 작품 목록 (1-3에서 채움)
+        guests: [],    // 지금 가게에 있는 손님 (1-5). 떠나면 지운다.
     };
 }
 
@@ -23,6 +24,7 @@ function normalize(data) {
     if (!data || typeof data !== 'object') return base;
     const s = { ...base, ...data };
     if (!Array.isArray(s.works)) s.works = [];
+    if (!Array.isArray(s.guests)) s.guests = [];
     if (!Number.isFinite(s.gold)) s.gold = 0;
     if (!Number.isFinite(s.gameTime)) s.gameTime = 0;
     if (!Number.isInteger(s.nextId) || s.nextId < 1) s.nextId = 1;
