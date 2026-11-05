@@ -117,7 +117,6 @@ function openAddSheet() {
         preview.hidden = false;
         hint.textContent = `${f.name} · ${Math.round(f.size / 1024)}KB`;
         hint.classList.remove('wildcat_warn');
-        if (!title.value.trim()) title.value = f.name.replace(/\.[^.]+$/, '').slice(0, 60);
         save.disabled = false;
     });
 

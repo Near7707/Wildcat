@@ -292,3 +292,32 @@
     max-height: none;
     display: block;
 }
+
+/* ---------- 테마와 상관없이 가게 창 글자·입력칸 색 고정 ---------- */
+
+#wildcat_overlay,
+#wildcat_overlay :is(p, span, b, small, label, div, button) {
+    color: #ece6f2;
+    text-shadow: none;
+}
+#wildcat_overlay :is(small, .wildcat_hint, .wildcat_card_meta) {
+    color: #b8aec4;
+    opacity: 1;
+}
+#wildcat_overlay .wildcat_warn,
+#wildcat_overlay small.wildcat_warn {
+    color: #f0aa6a;
+}
+#wildcat_overlay input.wildcat_input {
+    background: #15121a !important;
+    color: #ece6f2 !important;
+    -webkit-text-fill-color: #ece6f2;
+    border: 1px solid #5a4c6a !important;
+    box-shadow: none !important;
+    caret-color: #ece6f2;
+}
+#wildcat_overlay input.wildcat_input::placeholder {
+    color: #8a7f96;
+    -webkit-text-fill-color: #8a7f96;
+    opacity: 1;
+}

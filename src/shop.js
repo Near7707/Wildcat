@@ -120,4 +120,22 @@ export function closeShop() {
     cleanup = null;
     overlay.remove();
     overlay = null;
+    refreshBrowserBars();
+}
+
+// 아이폰 사파리는 화면 가장자리 색을 보고 주소창 줄 색을 정한다.
+// 가게 창을 닫은 뒤에도 어두운 색이 남지 않게, 화면을 한 번 다시 그리게 한다.
+function refreshBrowserBars() {
+    const meta = document.querySelector('meta[name="theme-color"]');
+    const color = meta?.getAttribute('content') ?? null;
+    if (meta) meta.setAttribute('content', '#000001');
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            if (meta && color !== null) meta.setAttribute('content', color);
+            const x = window.scrollX;
+            const y = window.scrollY;
+            window.scrollTo(x, y + 1);
+            window.scrollTo(x, y);
+        });
+    });
 }
