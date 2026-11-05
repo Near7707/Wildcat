@@ -65,7 +65,7 @@
 }
 #wildcat_overlay .wildcat_title {
     font-weight: bold;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.02em;
 }
 #wildcat_overlay .wildcat_body {
     flex: 1 1 auto;

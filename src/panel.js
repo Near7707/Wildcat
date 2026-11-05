@@ -9,7 +9,7 @@ const PANEL_HTML = `
 <div id="wildcat_settings" class="wildcat_settings">
     <div class="inline-drawer">
         <div class="inline-drawer-toggle inline-drawer-header">
-            <b>WILDCAT</b>
+            <b>Wildcat</b>
             <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
         </div>
         <div class="inline-drawer-content">

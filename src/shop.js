@@ -17,7 +17,7 @@ export function openShop() {
     overlay.id = 'wildcat_overlay';
     overlay.innerHTML = `
         <div class="wildcat_top">
-            <span class="wildcat_title">WILDCAT</span>
+            <span class="wildcat_title">Wildcat</span>
             <button type="button" class="wildcat_btn" id="wildcat_close">닫기</button>
         </div>
         <div class="wildcat_body" id="wildcat_body">

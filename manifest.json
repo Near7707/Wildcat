@@ -1,12 +1,12 @@
 {
-    "display_name": "WILDCAT",
+    "display_name": "Wildcat",
     "loading_order": 100,
     "requires": [],
     "optional": [],
     "js": "index.js",
     "css": "style.css",
     "author": "Near7707",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "homePage": "https://github.com/Near7707/Wildcat",
     "auto_update": false
 }

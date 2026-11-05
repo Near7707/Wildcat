@@ -47,7 +47,7 @@ export async function loadState() {
     state = normalize(data);
     loadedFrom = from;
     if (data && Number(data.schema) > SCHEMA) {
-        console.warn('[WILDCAT] 더 새 버전에서 저장한 파일이에요.');
+        console.warn('[Wildcat] 더 새 버전에서 저장한 파일이에요.');
     }
     return { state, from };
 }

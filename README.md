@@ -1,8 +1,8 @@
-# WILDCAT
+# Wildcat
 
 SillyTavern 확장. 그림 상점 **The Honest Wildcat**에서 내가 등록한 그림을 AI 손님들이 감상하고 반응하는 작은 픽셀 게임입니다.
 
-> 개발 중 (0.1.1 — 1단계 진행 중). 아직 게임 기능은 없습니다.
+> 개발 중 (0.1.2 — 1단계 진행 중). 아직 게임 기능은 없습니다.
 
 ## 필요한 것
 - SillyTavern 1.19.0 이상 (연결 프로필 기능)
@@ -15,9 +15,9 @@ SillyTavern 확장. 그림 상점 **The Honest Wildcat**에서 내가 등록한 
 ## 설치
 1. SillyTavern에서 확장 메뉴 → **Install extension**을 누릅니다.
 2. 이 주소를 넣습니다: `https://github.com/Near7707/Wildcat`
-3. 확장 메뉴에서 **WILDCAT**을 엽니다.
+3. 확장 메뉴에서 **Wildcat**을 엽니다.
 
-업데이트는 확장 관리 화면에서 WILDCAT의 업데이트 버튼을 누르면 됩니다.
+업데이트는 확장 관리 화면에서 Wildcat의 업데이트 버튼을 누르면 됩니다.
 
 ## 사용
 1. 비전 AI, 반응 AI 프로필을 고릅니다.

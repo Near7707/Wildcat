@@ -142,7 +142,7 @@ export function readJson(name) {
                 known.set(name, { text, rev: Number(data.rev) || 0 });
                 return { data, from: 'main' };
             } catch (e) {
-                console.warn(`[WILDCAT] ${name} 읽기 실패, 백업을 씁니다.`, e);
+                console.warn(`[Wildcat] ${name} 읽기 실패, 백업을 씁니다.`, e);
             }
         }
         const bakText = await readText(backupName(name));
@@ -153,7 +153,7 @@ export function readJson(name) {
                 known.set(name, { text: bakText, rev: Number(data.rev) || 0, mainBroken: text !== null });
                 return { data, from: 'backup' };
             } catch (e) {
-                console.warn(`[WILDCAT] ${backupName(name)}도 읽기 실패.`, e);
+                console.warn(`[Wildcat] ${backupName(name)}도 읽기 실패.`, e);
             }
         }
         known.set(name, { text: null, rev: 0 });
