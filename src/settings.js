@@ -5,6 +5,7 @@ export const MODULE = 'wildcat';
 const DEFAULTS = Object.freeze({
     visionProfile: '',
     reactionProfile: '',
+    reactionMode: 'notes', // 'notes' 관찰 결과 사용 / 'direct' 그림 직접 보기(시험)
 });
 
 export const ctx = () => SillyTavern.getContext();

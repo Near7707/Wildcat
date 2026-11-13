@@ -33,6 +33,15 @@ const PANEL_HTML = `
 
             <small class="wildcat_note">두 칸에 같은 프로필을 골라도 돼요. 비전 AI는 그림을 볼 수 있는 모델이어야 해요. Vertex로 연결한 프로필은 쓸 수 없어요.</small>
 
+            <div class="wildcat_block">
+                <label for="wildcat_reaction_mode">감상 방식</label>
+                <select id="wildcat_reaction_mode" class="text_pole">
+                    <option value="notes">관찰 결과 사용 (기본)</option>
+                    <option value="direct">그림 직접 보기 (시험)</option>
+                </select>
+                <small class="wildcat_note">"그림 직접 보기"는 비전 AI가 손님마다 그림을 직접 보고 감상해요. 관찰 결과가 없어도 되지만, 손님 수만큼 그림을 보내서 느리고 비용이 더 들어요.</small>
+            </div>
+
             <div class="wildcat_row wildcat_open_row">
                 <div class="menu_button" id="wildcat_open">가게 열기</div>
                 <div class="menu_button" id="wildcat_selftest">저장 점검</div>
@@ -65,6 +74,10 @@ export function mountPanel() {
         document.querySelector(r.test).addEventListener('click', () => testProfile(role));
         fillSelect(role);
     }
+
+    const mode = document.getElementById('wildcat_reaction_mode');
+    mode.value = getSettings().reactionMode === 'direct' ? 'direct' : 'notes';
+    mode.addEventListener('change', () => setSetting('reactionMode', mode.value));
 
     document.getElementById('wildcat_open').addEventListener('click', openShop);
     document.getElementById('wildcat_selftest').addEventListener('click', selfTest);

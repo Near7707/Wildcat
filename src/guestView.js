@@ -7,7 +7,7 @@ import { StorageConflictError } from './storage.js';
 import { getSettings } from './settings.js';
 import { pushLayer, isShopOpen } from './shop.js';
 import { listWorks, getWork } from './works.js';
-import { reactToWork, isReacting, isWorkBusy, onReactionChange, canReact, interestLabel, ERROR_TEXT as REACT_ERRORS } from './reactions.js';
+import { reactToWork, isReacting, isWorkBusy, onReactionChange, canReact, interestLabel, reactionSetupProblem, ERROR_TEXT as REACT_ERRORS } from './reactions.js';
 
 onReactionChange(() => redrawAll());
 
@@ -132,7 +132,7 @@ function draftHtml(d, heading) {
         <div class="wildcat_draft">
             <div class="wildcat_draft_head">
                 <b>${esc(heading)}</b>
-                <small>관심 ${esc(interestLabel(d.interest))} · ${want}</small>
+                <small>${d.direct ? '직접 봄 · ' : ''}관심 ${esc(interestLabel(d.interest))} · ${want}</small>
             </div>
             <p class="wildcat_draft_outer">${d.outer ? esc(d.outer) : '<i>(말 없이 바라봄)</i>'}</p>
             <p class="wildcat_draft_inner">${esc(d.inner)}</p>
@@ -146,8 +146,9 @@ function reactError(e) {
 }
 
 async function runReaction(guestId, workId, { quiet = false } = {}) {
-    if (!getSettings().reactionProfile) {
-        toastr.warning('확장 메뉴에서 반응 AI 프로필을 먼저 골라 주세요.', 'Wildcat');
+    const problem = reactionSetupProblem();
+    if (problem) {
+        toastr.warning(problem, 'Wildcat');
         return { stop: true };
     }
     try {

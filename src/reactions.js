@@ -1,14 +1,47 @@
 // 손님의 작품 감상 (1-6).
 // 반응 AI가 겉말·속마음·관심·사고 싶음을 하나의 반응으로 만든다.
-// 그림은 보내지 않고 비전 AI의 관찰 결과만 보낸다.
+// 기본 방식: 그림은 보내지 않고 비전 AI의 관찰 결과만 반응 AI에 보낸다.
+// 시험 방식(설정 "그림 직접 보기"): 비전 AI 프로필에 그림과 손님 정보를 한 번에 보내 바로 반응을 받는다.
 // 결과는 손님의 "감상 초안"(guest.drafts[작품ID])으로만 둔다. 방명록 확정은 1-7.
 // 사고 싶음=예는 구매 신청·확정이 아니다. 거래는 게임이 나중에 처리한다.
 
-import { askReaction, findProfile, AiError } from './ai.js';
+import { askReaction, askVision, findProfile, isChatCompletion, AiError } from './ai.js';
 import { getSettings } from './settings.js';
 import { getGuest, updateGuest, traitLines, lookLines } from './guests.js';
 import { getWork } from './works.js';
-import { observationText } from './vision.js';
+import { observationText, makeVisionImage } from './vision.js';
+
+/** 지금 감상 방식이 "그림 직접 보기"(시험)인지 */
+export function isDirectMode() {
+    return getSettings().reactionMode === 'direct';
+}
+
+/** 감상을 시작하기 전에 설정 문제가 있으면 안내 문구, 없으면 null */
+export function reactionSetupProblem() {
+    const s = getSettings();
+    if (isDirectMode()) {
+        if (!s.visionProfile) return '"그림 직접 보기" 방식은 비전 AI 프로필을 써요. 확장 메뉴에서 먼저 골라 주세요.';
+        return null;
+    }
+    if (!s.reactionProfile) return '확장 메뉴에서 반응 AI 프로필을 먼저 골라 주세요.';
+    return null;
+}
+
+// 직접 보기에서 여러 손님이 같은 그림을 볼 때 줄인 그림을 다시 만들지 않게 하나만 기억한다.
+let imageCache = null; // { workId, file, dataUrl }
+
+async function directImage(work) {
+    const file = work.image ?? '';
+    if (imageCache && imageCache.workId === work.id && imageCache.file === file) return imageCache.dataUrl;
+    let image;
+    try {
+        image = await makeVisionImage(work);
+    } catch (e) {
+        throw new AiError('request', `그림을 준비하지 못했어요: ${e?.message ?? e}`, e);
+    }
+    imageCache = { workId: work.id, file, dataUrl: image.dataUrl };
+    return image.dataUrl;
+}
 
 export const INTEREST = [
     { key: 'none', label: '없음' },
@@ -64,8 +97,23 @@ const CANDOR_GUIDE = {
     often: '이 손님은 속내를 자주 돌려 말합니다. 침묵, 농담, 말 돌리기, 감정 줄여 말하기 등으로 표현하고, 반대로 말하는 건 아주 가끔만 합니다.',
 };
 
-function buildPrompt(guest, work, hints) {
+/**
+ * @param {boolean} direct true면 그림을 직접 붙여 보내는 시험 방식 (관찰 메모 없음)
+ */
+function buildPrompt(guest, work, hints, direct = false) {
     const lines = (rows) => rows.map(([k, v]) => `- ${k}: ${v}`).join('\n');
+    const workBlock = direct
+        ? `[작품]
+- 제목: ${work.title}
+- 그림: 이 메시지에 붙은 그림을 손님이 지금 직접 보고 있습니다. 화면 캡처라면 그 안의 그림만 보고, 상태 표시줄이나 버튼 같은 화면 틀은 무시합니다.`
+        : `[작품]
+- 제목: ${work.title}
+- 관찰 메모 (손님이 실제로 본 그림을 글로 옮긴 것):
+${observationText(work)}
+
+이 메모는 손님이 눈으로 본 그림 그 자체입니다. 손님은 메모를 읽는 사람이 아니라 그림을 통째로 본 사람입니다. 메모 항목을 하나씩 짚어 가며 반응하지 않습니다.`;
+    const notThere = direct ? '그림에 없는 세부 묘사' : '메모에 없는 세부 묘사';
+
     return `당신은 여러 세계의 손님이 드나드는 그림 상점 "The Honest Wildcat"에 온 손님 한 사람입니다.
 지금 가게에 걸린 작품 하나 앞에 서 있습니다. 이 손님이 되어 작품을 보고 솔직하게 반응하세요.
 
@@ -77,29 +125,27 @@ ${lines(traitLines(guest.traits))}
 [외형]
 ${lines(lookLines(guest.look))}
 
-[작품]
-- 제목: ${work.title}
-- 관찰 메모 (손님이 실제로 본 그림을 글로 옮긴 것):
-${observationText(work)}
+위 손님 정보는 이 사람의 배경일 뿐입니다. 출신, 직업, 방문 목적, 예산을 감상에 꺼내지 않는 게 보통이고, 정말 떠오를 때만 씁니다. 매번 자기 세계나 지난 경험과 연결 짓지 않고, 살지 말지 고민도 마음이 실제로 그쪽으로 갈 때만 씁니다.
 
-이 메모는 손님이 눈으로 본 그림 그 자체입니다. 손님은 메모를 읽는 사람이 아니라 그림을 통째로 본 사람입니다. 메모 항목을 하나씩 짚어 가며 반응하지 않습니다.
+${workBlock}
 
 말투:
 - 이 사람은 게임 속 안내 NPC가 아니라 그냥 그림 구경 온 사람입니다. 진짜 사람이 그림 앞에서 내뱉을 법한 말로 쓰세요. 꼭 공손하거나 차분할 필요는 없습니다.
 - 말투와 어휘는 직업, 성격, 말수, 지금 기분을 함께 보고 정합니다. 출신 세계는 참고만 합니다. 무협 출신이라고 늘 고풍스럽게, 판타지 출신이라고 늘 격식 있게 말하지 않습니다. 같은 세계 사람끼리도 말투는 제각각입니다.
-- 존댓말, 반말, 혼잣말, 사투리 느낌, 끊긴 말, 비문, 한 단어 다 괜찮습니다. 요즘 사람 같은 손님은 실제 사람들이 쓰는 구어체나 인터넷식 표현을 써도 됩니다. 다만 누구나 유행어나 밈을 쓸 필요는 없고, 안 어울리면 쓰지 않습니다.
-- 반응의 폭은 넓습니다. 예를 들면 짧은 감탄, 즉흥적인 한마디, 농담이나 드립, 장난스러운 과장, 직설적인 혹평, 무심하게 툭 던지는 말, 진지한 감상 등. 이건 고르는 목록이 아니라 "이런 것도 된다"는 예시입니다. 이 손님에게 지금 자연스러운 쪽으로 씁니다.
+- 존댓말, 반말, 혼잣말, 사투리 느낌, 끊긴 말, 비문, 한 단어 다 괜찮습니다.
+- 출신 세계와 상관없이, 성격이 맞으면 누구든 실제 영상 댓글이나 커뮤니티 반응처럼 짧고 즉흥적으로 반응할 수 있습니다. 예를 들면 짧은 감탄, 드립, 장난스러운 과장, 직설적인 혹평, 엉뚱한 해석, 무심하게 툭 던지는 말. 인터넷식 표현이나 유행어도 이 사람에게 어울리면 씁니다.
+- 반대로 진지하고 점잖게 보는 사람도 있습니다. 모두가 댓글처럼 굴거나 웃기려 하지 않습니다. 위 예시는 고르는 목록이 아니라 "이런 것도 된다"는 뜻이고, 이 손님에게 지금 자연스러운 쪽으로 씁니다.
 - 개그로도, 칭찬으로도 한쪽으로 쏠리지 않습니다. 웃기려고 억지로 비틀지 않습니다.
 
 감상하는 법:
 - 그림을 본 사람이 먼저 느끼는 건 보통 부분이 아니라 전체입니다. 어떤 그림인지, 무슨 상황·순간으로 보이는지, 어떤 느낌이 드는지.
 - 감상이 시작되는 곳은 사람마다 다릅니다. 전체 인상, 그림 속 상황에 대한 해석이나 상상, 연출이나 분위기, 그냥 드는 기분, 유독 꽂히는 디테일 하나 등. 고르는 목록이 아니라 예시이고, 이 손님에게 자연스러운 쪽으로 갑니다.
-- 그림 종류에 따라 보는 법도 다릅니다. 인물 그림이면 그 인물이 어떤 사람·어떤 기분으로 보이는지, 풍경이면 그 장소의 공기나 거기 있고 싶은지, 장면 그림이면 무슨 일이 벌어지고 있는지, 귀여운 그림이면 그냥 귀여운지 아닌지.
+- 그림 종류에 따라 보는 법도 다릅니다. 인물 그림이면 그 인물이 어떤 사람·어떤 기분으로 보이는지, 풍경이면 그 장소의 공기나 거기 있고 싶은지, 장면 그림이면 무슨 일이 벌어지고 있는지, 귀여운 그림이면 그냥 귀여운지 아닌지, 이모티콘·짤·밈 같은 그림이면 웃긴지, 공감되는지, 써먹고 싶은지.
+- 다른 손님들도 이 그림을 같이 봅니다. 누구나 바로 짚을 만한 부분(제일 눈에 띄는 글자나 장식 등)을 꼭 말할 필요는 없습니다. 그림 전체에 대한 반응이나 남들이 놓칠 만한 부분도 좋습니다.
 - 손님들은 수인, 엘프, 의체, 기묘한 존재가 흔한 세계에서 왔습니다. 그림 속 존재도 자연스럽게 알아봅니다. 고양이 귀와 꼬리가 있는 사람을 보면 "귀랑 꼬리가 있네"가 아니라 그냥 고양이 수인으로 봅니다.
-- 출신 세계나 지난 경험은 정말 떠오를 때만 꺼냅니다. 매번 자기 세계와 연결 짓지 않습니다.
 
 반응 규칙:
-- 지어내지 않는 건 이것뿐입니다: 그림 속 인물의 이름, 어느 이야기의 캐릭터인지, 인물끼리의 관계, 메모에 없는 세부 묘사를 사실처럼 말하기. 상황 해석이나 상상은 얼마든지 하되 "~ 같다", "~인가?" 정도로 합니다.
+- 지어내지 않는 건 이것뿐입니다: 그림 속 인물의 이름, 어느 이야기의 캐릭터인지, 인물끼리의 관계, ${notThere}를 사실처럼 말하기. 상황 해석이나 상상은 얼마든지 하되 "~ 같다", "~인가?" 정도로 합니다.
 - 미술 평론가처럼 말하지 않습니다. (감상 태도가 "그리는 법을 따짐"인 손님만 기법 이야기를 합니다.)
 - 무조건 칭찬하지 않습니다. 좋아하지 않을 수도, 시큰둥할 수도, 이상하게 끌릴 수도 있습니다. 취향은 기준일 뿐이고 작품 전체를 보고 느낍니다.
 - ${CANDOR_GUIDE[guest.traits.candor] ?? CANDOR_GUIDE.open}
@@ -112,7 +158,7 @@ ${observationText(work)}
 - 한국어로 씁니다. 따옴표나 이름표 없이 내용만 씁니다.
 
 판단 규칙:
-- [관심]은 이 작품이 이 손님의 눈길을 얼마나 끄는지입니다. 없음 / 조금 / 큼 중 하나.
+- [관심]은 이 작품이 이 손님의 눈길을 얼마나 끄는지입니다. 없음 / 조금 / 큼 중 하나. "조금"은 무난하게 고르는 기본값이 아닙니다. 확 끌리면 큼, 별 감흥 없으면 없음으로 솔직하게 고릅니다.
 - [사고 싶음]은 가격 같은 현실 조건을 따지기 전에, 이 작품을 갖고 싶은 마음이 있는지입니다. 예 / 아니오 중 하나.
 - 둘은 따로 판단합니다. 관심이 커도 갖고 싶지 않을 수 있고, 관심이 조금이어도 선물 등의 이유로 갖고 싶을 수 있습니다.
 
@@ -202,7 +248,9 @@ export const ERROR_TEXT = {
 };
 
 export function canReact(work) {
-    return work?.observation?.status === 'ok';
+    if (!work) return false;
+    if (isDirectMode()) return true; // 직접 보기는 관찰 결과가 없어도 된다
+    return work.observation?.status === 'ok';
 }
 
 /**
@@ -218,16 +266,34 @@ export async function reactToWork(guestId, workId) {
     if (!guest || !work) throw new AiError('gone', '손님이나 작품이 없어졌어요.');
     if (!canReact(work)) throw new AiError('noobs', '이 작품은 아직 관찰 결과가 없어서 감상할 수 없어요.');
 
+    const direct = isDirectMode();
+    if (direct) {
+        const vp = findProfile(getSettings().visionProfile);
+        if (vp && !isChatCompletion(vp)) throw new AiError('setup', '비전 AI 프로필이 Chat Completion 방식이 아니라서 그림을 보낼 수 없어요.');
+    }
+
     running.add(key);
     emit();
     try {
         const hints = rollHints(guest.traits.talk);
+        let messages;
+        if (direct) {
+            const dataUrl = await directImage(work);
+            messages = [{
+                role: 'user',
+                content: [
+                    { type: 'text', text: buildPrompt(guest, work, hints, true) },
+                    { type: 'image_url', image_url: { url: dataUrl } },
+                ],
+            }];
+        } else {
+            messages = [{ role: 'user', content: buildPrompt(guest, work, hints) }];
+        }
+        const ask = direct ? askVision : askReaction;
         let parsed = null;
         let lastRaw = '';
         for (let attempt = 0; attempt < 2; attempt++) {
-            lastRaw = await askReaction([
-                { role: 'user', content: buildPrompt(guest, work, hints) },
-            ], { maxTokens: 4000 });
+            lastRaw = await ask(messages, { maxTokens: 4000, ...(direct ? { timeoutMs: 180000 } : {}) });
             parsed = parseReaction(lastRaw);
             if (parsed.ok) break;
         }
@@ -245,8 +311,9 @@ export async function reactToWork(guestId, workId) {
             hints,
             workTitle: work.title,
             at: new Date().toISOString(),
-            profile: findProfile(getSettings().reactionProfile)?.name ?? '',
+            profile: findProfile(direct ? getSettings().visionProfile : getSettings().reactionProfile)?.name ?? '',
         };
+        if (direct) draft.direct = true; // 시험 방식으로 만든 초안 표시
         // 그사이 작품이 지워졌으면 저장하지 않는다
         if (!getWork(workId)) throw new AiError('gone', '감상하는 사이 작품이 지워졌어요.');
         const saved = await updateGuest(guestId, (g) => {
